@@ -1,6 +1,4 @@
 import React from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { Button, Form, Badge, Card, Spinner, Modal } from "react-bootstrap";
 import "./App.css";
 
@@ -9,7 +7,6 @@ class App extends React.Component {
     super(props);
     console.log("constructor: Component is being constructed");
 
-    // Initial state
     this.state = {
       tasks: [
         { id: 1, title: "Complete React Assignment", priority: "High", completed: false, createdAt: Date.now() },
@@ -25,7 +22,6 @@ class App extends React.Component {
       isModalOpen: false,
     };
 
-    // Bind methods
     this.handleFilterChange = this.handleFilterChange.bind(this);
     this.handleTaskToggle = this.handleTaskToggle.bind(this);
     this.handleDeleteTask = this.handleDeleteTask.bind(this);
@@ -33,19 +29,16 @@ class App extends React.Component {
     this.toggleModal = this.toggleModal.bind(this);
   }
 
-  // Lifecycle: Mount
   componentDidMount() {
     console.log("componentDidMount: Component has mounted");
     this.setState({ mountTime: new Date().toLocaleString() });
 
-    // Simulated API delay
     this.timer = setTimeout(() => {
       this.setState({ isLoading: false });
       console.log("Simulated API call complete — loading finished");
-    }, 2000);
+    }, 1000);
   }
 
-  // Lifecycle: Update
   componentDidUpdate(prevProps, prevState) {
     if (prevState.tasks.length !== this.state.tasks.length) {
       console.log(`Tasks changed: ${prevState.tasks.length} → ${this.state.tasks.length}`);
@@ -56,18 +49,15 @@ class App extends React.Component {
     }
   }
 
-  // Lifecycle: Unmount
   componentWillUnmount() {
     console.log("componentWillUnmount: Cleaning up resources...");
-    clearTimeout(this.timer);
+    if (this.timer) clearTimeout(this.timer);
   }
 
-  // Filter handler
   handleFilterChange(filterType) {
     this.setState({ filter: filterType });
   }
 
-  // Task toggle
   handleTaskToggle(taskId) {
     this.setState((prevState) => ({
       tasks: prevState.tasks.map((task) =>
@@ -76,23 +66,20 @@ class App extends React.Component {
     }));
   }
 
-  // Delete task
   handleDeleteTask(taskId) {
     this.setState((prevState) => ({
       tasks: prevState.tasks.filter((task) => task.id !== taskId),
     }));
   }
 
-  // Add task
   handleAddTask(e) {
     e.preventDefault();
-
     const { newTaskTitle, newTaskPriority } = this.state;
     if (!newTaskTitle.trim()) return;
 
     const newTask = {
       id: Date.now(),
-      title: newTaskTitle,
+      title: newTaskTitle.trim(),
       priority: newTaskPriority,
       completed: false,
       createdAt: Date.now(),
@@ -100,60 +87,50 @@ class App extends React.Component {
 
     this.setState((prevState) => ({
       tasks: [...prevState.tasks, newTask],
-      isModalOpen: false,
       newTaskTitle: "",
       newTaskPriority: "High",
+      isModalOpen: false,
     }));
   }
 
-  // Modal toggle
   toggleModal() {
     this.setState((prevState) => ({
       isModalOpen: !prevState.isModalOpen,
     }));
   }
 
-  // Priority badge color
   getPriorityBadge(priority) {
     switch (priority) {
       case "High":
-        return "primary";
+        return "danger";
       case "Medium":
         return "warning";
       case "Low":
-        return "secondary";
+        return "success";
       default:
         return "info";
     }
   }
 
   render() {
-    const {
-      tasks,
-      filter,
-      isLoading,
-      isModalOpen,
-      newTaskTitle,
-      newTaskPriority,
-    } = this.state;
+    const { tasks, filter, isLoading, isModalOpen, newTaskTitle, newTaskPriority } = this.state;
 
-    // Apply filters
+    if (isLoading) {
+      return (
+        <div data-testid="loading" className="d-flex justify-content-center align-items-center vh-100">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      );
+    }
+
     const filteredTasks = tasks.filter((task) => {
       if (filter === "Completed") return task.completed;
       if (filter === "All") return true;
       return task.priority === filter;
     });
 
-    // Loading Spinner
-    if (isLoading) {
-      return (
-        <div className="d-flex justify-content-center align-items-center vh-100">
-          <Spinner animation="border" variant="primary" />
-        </div>
-      );
-    }
-
-    // Main UI
     return (
       <div className="app-container">
         <nav className="navbar navbar-dark bg-dark">
@@ -166,7 +143,7 @@ class App extends React.Component {
         </nav>
 
         <div className="container mt-4">
-          <div className="btn-group" role="group">
+          <div className="btn-group mb-3" role="group" aria-label="Filter Tasks">
             {["All", "High", "Medium", "Low", "Completed"].map((f) => (
               <Button
                 key={f}
@@ -178,11 +155,11 @@ class App extends React.Component {
             ))}
           </div>
 
-          <div className="row mt-4">
+          <div className="row">
             {filteredTasks.length > 0 ? (
               filteredTasks.map((task) => (
-                <div key={task.id} className="col-lg-6 mb-4">
-                  <Card className="task-card">
+                <div key={task.id} className="col-md-6 mb-3">
+                  <Card className="shadow-sm">
                     <Card.Body>
                       <div className="d-flex justify-content-between align-items-start">
                         <Form.Check
@@ -190,16 +167,12 @@ class App extends React.Component {
                           checked={task.completed}
                           onChange={() => this.handleTaskToggle(task.id)}
                           label={
-                            <span
-                              className={
-                                task.completed ? "task-title-completed" : ""
-                              }
-                            >
+                            <span className={task.completed ? "text-decoration-line-through" : ""}>
                               {task.title}
                             </span>
                           }
                         />
-                        <Badge bg={this.getPriorityBadge(task.priority)}>
+                        <Badge variant={this.getPriorityBadge(task.priority)}>
                           {task.priority}
                         </Badge>
                       </div>
@@ -216,40 +189,33 @@ class App extends React.Component {
                 </div>
               ))
             ) : (
-              <p className="text-center mt-4">
-                No tasks to display for this filter.
-              </p>
+              <p className="text-center">No tasks to display for this filter.</p>
             )}
           </div>
         </div>
 
-        {/* Bootstrap Modal for Adding New Tasks */}
         <Modal show={isModalOpen} onHide={this.toggleModal}>
           <Modal.Header closeButton>
             <Modal.Title>Add New Task</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form onSubmit={this.handleAddTask}>
-              <Form.Group className="mb-3" controlId="formTaskTitle">
+              <Form.Group className="mb-3">
                 <Form.Label>Task Title</Form.Label>
                 <Form.Control
                   type="text"
                   placeholder="Enter task title..."
                   value={newTaskTitle}
-                  onChange={(e) =>
-                    this.setState({ newTaskTitle: e.target.value })
-                  }
+                  onChange={(e) => this.setState({ newTaskTitle: e.target.value })}
                   required
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3" controlId="formTaskPriority">
+              <Form.Group className="mb-3">
                 <Form.Label>Priority</Form.Label>
                 <Form.Select
                   value={newTaskPriority}
-                  onChange={(e) =>
-                    this.setState({ newTaskPriority: e.target.value })
-                  }
+                  onChange={(e) => this.setState({ newTaskPriority: e.target.value })}
                 >
                   <option>High</option>
                   <option>Medium</option>
@@ -258,11 +224,7 @@ class App extends React.Component {
               </Form.Group>
 
               <div className="text-end">
-                <Button
-                  variant="secondary"
-                  onClick={this.toggleModal}
-                  className="me-2"
-                >
+                <Button variant="secondary" onClick={this.toggleModal} className="me-2">
                   Cancel
                 </Button>
                 <Button variant="primary" type="submit">
