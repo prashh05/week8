@@ -1,21 +1,19 @@
-pah :
-
-
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Form, Badge, Card, Spinner } from "react-bootstrap";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import { Button, Form, Badge, Card, Spinner, Modal } from "react-bootstrap";
 import "./App.css";
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    console.log("constructor: Component is being constructed");
+    console.log("Constructor: Component is being constructed");
 
     this.state = {
       tasks: [
         { id: 1, title: "Complete React Assignment", priority: "High", completed: false, createdAt: Date.now() },
         { id: 2, title: "Review Bootstrap Documentation", priority: "Medium", completed: true, createdAt: Date.now() },
-        { id: 3, title: "Debug Lifecycle methods", priority: "High", completed: false, createdAt: Date.now() },
+        { id: 3, title: "Debug Lifecycle Methods", priority: "High", completed: false, createdAt: Date.now() },
         { id: 4, title: "Setup React Dev Tools", priority: "Low", completed: false, createdAt: Date.now() },
       ],
       filter: "All",
@@ -26,6 +24,7 @@ class App extends React.Component {
       isModalOpen: false,
     };
 
+    // Bind methods
     this.handleFilterChange = this.handleFilterChange.bind(this);
     this.handleTaskToggle = this.handleTaskToggle.bind(this);
     this.handleDeleteTask = this.handleDeleteTask.bind(this);
@@ -35,7 +34,7 @@ class App extends React.Component {
 
   componentDidMount() {
     console.log("Component has mounted");
-    this.setState({ mountTime: new Date().toLocaleDateString() });
+    this.setState({ mountTime: new Date().toLocaleString() });
 
     setTimeout(() => {
       this.setState({ isLoading: false });
@@ -57,24 +56,23 @@ class App extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    console.log("Component will unmount. Cleaning up timers...");
+  }
+
   handleFilterChange(filterType) {
-    console.log("handleFilterChange is executing...");
     this.setState({ filter: filterType });
   }
 
   handleTaskToggle(taskId) {
-    console.log("handleTaskToggle is executing...");
     this.setState((prevState) => ({
       tasks: prevState.tasks.map((task) =>
-        task.id === taskId
-          ? { ...task, completed: !task.completed }
-          : task
+        task.id === taskId ? { ...task, completed: !task.completed } : task
       ),
     }));
   }
 
   handleDeleteTask(taskId) {
-    console.log("handleDeleteTask is executing...");
     this.setState((prevState) => ({
       tasks: prevState.tasks.filter((task) => task.id !== taskId),
     }));
@@ -82,7 +80,6 @@ class App extends React.Component {
 
   handleAddTask(e) {
     e.preventDefault();
-    console.log("handleAddTask is executing...");
 
     if (!this.state.newTaskTitle.trim()) return;
 
@@ -103,7 +100,6 @@ class App extends React.Component {
   }
 
   toggleModal() {
-    console.log("toggleModal is executing...");
     this.setState((prevState) => ({
       isModalOpen: !prevState.isModalOpen,
     }));
@@ -111,7 +107,7 @@ class App extends React.Component {
 
   getPriorityBadge(priority) {
     switch (priority) {
-      case "High": return "primary";
+      case "High": return "danger";
       case "Medium": return "warning";
       case "Low": return "secondary";
       default: return "info";
@@ -196,39 +192,47 @@ class App extends React.Component {
           </div>
         </div>
 
-        {isModalOpen && (
-          <div className="modal-backdrop">
-            <div className="modal-container">
-              <Form onSubmit={this.handleAddTask}>
-                <Form.Group className="mb-3" controlId="formTaskTitle">
-                  <Form.Label>Task Title</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter task title..."
-                    value={newTaskTitle}
-                    onChange={(e) => this.setState({ newTaskTitle: e.target.value })}
-                    required
-                  />
-                </Form.Group>
+        {/* Bootstrap Modal for Adding Tasks */}
+        <Modal show={isModalOpen} onHide={this.toggleModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Add New Task</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form onSubmit={this.handleAddTask}>
+              <Form.Group className="mb-3">
+                <Form.Label>Task Title</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter task title..."
+                  value={newTaskTitle}
+                  onChange={(e) => this.setState({ newTaskTitle: e.target.value })}
+                  required
+                />
+              </Form.Group>
 
-                <Form.Group className="mb-3" controlId="formTaskPriority">
-                  <Form.Label>Priority</Form.Label>
-                  <Form.Select
-                    value={newTaskPriority}
-                    onChange={(e) => this.setState({ newTaskPriority: e.target.value })}
-                  >
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                  </Form.Select>
-                </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Priority</Form.Label>
+                <Form.Select
+                  value={newTaskPriority}
+                  onChange={(e) => this.setState({ newTaskPriority: e.target.value })}
+                >
+                  <option>High</option>
+                  <option>Medium</option>
+                  <option>Low</option>
+                </Form.Select>
+              </Form.Group>
 
-                <Button variant="secondary" onClick={this.toggleModal} className="me-2">Close</Button>
-                <Button variant="primary" type="submit">Add Task</Button>
-              </Form>
-            </div>
-          </div>
-        )}
+              <div className="text-end">
+                <Button variant="secondary" onClick={this.toggleModal} className="me-2">
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit">
+                  Add Task
+                </Button>
+              </div>
+            </Form>
+          </Modal.Body>
+        </Modal>
       </div>
     );
   }
