@@ -1,0 +1,218 @@
+TYPE THE CODE
+
+import React, { Component } from 'react';
+
+class App extends Component {
+constructor(props) {
+super(props);
+this.state = {
+query: '',
+employees: [
+'John Doe',
+'Jane Smith',
+'Mike Johnson',
+'Emily Davis',
+'James Brown',
+'Jennifer Wilson',
+'Paul Garcia',
+'Laura Martinez'
+],
+filteredEmployees: [
+'John Doe',
+'Jane Smith',
+'Mike Johnson',
+'Emily Davis',
+'James Brown',
+'Jennifer Wilson',
+'Paul Garcia',
+'Laura Martinez'
+]
+};
+}
+componentDidUpdate(prevProps, prevState) {
+if (prevState.query !== this.state.query) {
+this.filterEmployees();
+}
+}
+handleSearch = (event) => {
+this.setState({ query: event.target.value });
+};
+filterEmployees = () => {
+const { employees, query } = this.state;
+const filtered = employees.filter((employee) =>
+employee.toLowerCase().includes(query.toLowerCase())
+);
+this.setState({ filteredEmployees: filtered });
+};
+render() {
+return (
+<div>
+<h1>Employee Directory</h1>
+<input
+type="text"
+placeholder="Search employees..."
+value={this.state.query}
+onChange={this.handleSearch}
+/>
+<ul>
+{this.state.filteredEmployees.map((employee, index) => (
+<li key={index}>{employee}</li>
+))}
+</ul>
+</div>
+);
+}
+}
+export default App;
+
+
+FIX THE CODE 
+
+import React, { useState, useEffect, useRef } from 'react';
+
+const formatTime = (time) => {
+const centiseconds = Math.floor((time % 1000) / 10);
+const seconds = Math.floor((time / 1000) % 60);
+const minutes = Math.floor((time / (1000 * 60)) % 60);
+
+const pad = (num, size) => String(num).padStart(size, '0');
+
+return `${pad(minutes, 2)}:${pad(seconds, 2)}.${pad(centiseconds, 2)}`;
+};
+
+const Stopwatch = () => {
+const [time, setTime] = useState(0);
+const [isRunning, setIsRunning] = useState(false);
+const [laps, setLaps] = useState([]);
+const timerRef = useRef(null);
+
+const handleStart = () => {
+if (!isRunning) {
+setIsRunning(true);
+timerRef.current = setInterval(() => {
+setTime((prevTime) => prevTime + 10); // update every 10 ms
+}, 10);
+}
+};
+
+const handleStop = () => {
+if (isRunning) {
+clearInterval(timerRef.current);
+setIsRunning(false);
+}
+};
+
+const handleReset = () => {
+clearInterval(timerRef.current);
+setIsRunning(false);
+setTime(0);
+setLaps([]);
+};
+
+const handleAddLap = () => {
+if (isRunning) {
+setLaps((prevLaps) => [...prevLaps, formatTime(time)]);
+}
+};
+
+useEffect(() => {
+return () => clearInterval(timerRef.current);
+}, []);
+
+return (
+<div>
+<h1>Stopwatch</h1>
+<div>
+<h2>{formatTime(time)}</h2>
+</div>
+<div>
+<button onClick={handleStart} disabled={isRunning}>Start</button>
+<button onClick={handleStop} disabled={!isRunning}>Stop</button>
+<button onClick={handleReset} disabled={isRunning && time === 0}>Reset</button>
+<button onClick={handleAddLap} disabled={!isRunning}>Add Lap</button>
+</div>
+<ul>
+{laps.map((lap, index) => (
+<li key={index}>{lap}</li>
+))}
+</ul>
+</div>
+);
+};
+
+export default Stopwatch;
+
+
+CHALLENGE YOURSELF 
+
+// src/App.js
+
+import React from 'react';
+import CropDashboard from './Components/CropDashboard';
+import './App.css';
+const initialCrops = [
+  { name: 'Tomato', type: 'Vegetables', status: 'Growing' },
+  { name: 'Apple', type: 'Fruits', status: 'Planted' },
+  { name: 'Wheat', type: 'Grains', status: 'Harvested' },
+  { name: 'Carrot', type: 'Vegetables', status: 'Growing' },
+  { name: 'Banana', type: 'Fruits', status: 'Growing' },
+];
+export default function App() {
+  return <CropDashboard crops={initialCrops} />;
+}
+
+// src/Components/CropDashboard.jsx
+
+import React, { useState, useMemo } from 'react';
+import CropList from './CropList';
+export default function CropDashboard({ crops = [] }) {
+  const [query, setQuery] = useState('');
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return crops;
+    return crops.filter((c) => c.name.toLowerCase().includes(q));
+  }, [query, crops]);
+  return (
+    <div className="container py-5 d-flex justify-content-center">
+      <div className="card shadow-sm p-4" style={{ maxWidth: 720, width: '100%' }}>
+        <h2 className="fw-bold text-uppercase mb-2">Crop Management System</h2>
+        <hr className="border-2 border-success opacity-100 mt-0" />
+        <div className="mb-3">
+          <label className="form-label fw-semibold">Search by Crop Name</label>
+          <input
+            type="text"
+            className="form-control border-success"
+            placeholder="Search crops..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <CropList crops={filtered} />
+      </div>
+    </div>
+  );
+}
+
+// src/Components/CropList.jsx
+
+import React from 'react';
+export default function CropList({ crops = [] }) {
+  if (crops.length === 0) {
+    return <div className="text-muted">No crops found.</div>;
+  }
+  return (
+    <ul className="list-unstyled m-0">
+      {crops.map((c) => (
+        <li key={c.name} className="d-flex justify-content-between py-2 border-bottom">
+          <div className="d-flex align-items-center">
+            <span className="text-success me-2" aria-hidden="true">{'{'}</span>
+            <span className="fw-semibold">{c.name}</span>
+          </div>
+          <div className="text-muted small">
+            - Type: {c.type} - Status: {c.status}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
