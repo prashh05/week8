@@ -1,0 +1,237 @@
+pah :
+
+
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Button, Form, Badge, Card, Spinner } from "react-bootstrap";
+import "./App.css";
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    console.log("constructor: Component is being constructed");
+
+    this.state = {
+      tasks: [
+        { id: 1, title: "Complete React Assignment", priority: "High", completed: false, createdAt: Date.now() },
+        { id: 2, title: "Review Bootstrap Documentation", priority: "Medium", completed: true, createdAt: Date.now() },
+        { id: 3, title: "Debug Lifecycle methods", priority: "High", completed: false, createdAt: Date.now() },
+        { id: 4, title: "Setup React Dev Tools", priority: "Low", completed: false, createdAt: Date.now() },
+      ],
+      filter: "All",
+      isLoading: true,
+      mountTime: null,
+      newTaskTitle: "",
+      newTaskPriority: "High",
+      isModalOpen: false,
+    };
+
+    this.handleFilterChange = this.handleFilterChange.bind(this);
+    this.handleTaskToggle = this.handleTaskToggle.bind(this);
+    this.handleDeleteTask = this.handleDeleteTask.bind(this);
+    this.handleAddTask = this.handleAddTask.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
+  }
+
+  componentDidMount() {
+    console.log("Component has mounted");
+    this.setState({ mountTime: new Date().toLocaleDateString() });
+
+    setTimeout(() => {
+      this.setState({ isLoading: false });
+      console.log("Simulated API call finished, loading is complete.");
+    }, 2000);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.tasks.length !== this.state.tasks.length) {
+      console.log(
+        `Task count changed from ${prevState.tasks.length} to ${this.state.tasks.length}`
+      );
+    }
+
+    if (prevState.filter !== this.state.filter) {
+      console.log(
+        `Filter changed from ${prevState.filter} to ${this.state.filter}`
+      );
+    }
+  }
+
+  handleFilterChange(filterType) {
+    console.log("handleFilterChange is executing...");
+    this.setState({ filter: filterType });
+  }
+
+  handleTaskToggle(taskId) {
+    console.log("handleTaskToggle is executing...");
+    this.setState((prevState) => ({
+      tasks: prevState.tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, completed: !task.completed }
+          : task
+      ),
+    }));
+  }
+
+  handleDeleteTask(taskId) {
+    console.log("handleDeleteTask is executing...");
+    this.setState((prevState) => ({
+      tasks: prevState.tasks.filter((task) => task.id !== taskId),
+    }));
+  }
+
+  handleAddTask(e) {
+    e.preventDefault();
+    console.log("handleAddTask is executing...");
+
+    if (!this.state.newTaskTitle.trim()) return;
+
+    const newTask = {
+      id: Date.now(),
+      title: this.state.newTaskTitle,
+      priority: this.state.newTaskPriority,
+      completed: false,
+      createdAt: Date.now(),
+    };
+
+    this.setState((prevState) => ({
+      tasks: [...prevState.tasks, newTask],
+      isModalOpen: false,
+      newTaskTitle: "",
+      newTaskPriority: "High",
+    }));
+  }
+
+  toggleModal() {
+    console.log("toggleModal is executing...");
+    this.setState((prevState) => ({
+      isModalOpen: !prevState.isModalOpen,
+    }));
+  }
+
+  getPriorityBadge(priority) {
+    switch (priority) {
+      case "High": return "primary";
+      case "Medium": return "warning";
+      case "Low": return "secondary";
+      default: return "info";
+    }
+  }
+
+  render() {
+    const { tasks, filter, isLoading, isModalOpen, newTaskTitle, newTaskPriority } = this.state;
+
+    const filteredTasks = tasks.filter((task) => {
+      if (filter === "Completed") return task.completed;
+      if (filter === "All") return true;
+      return task.priority === filter;
+    });
+
+    if (isLoading) {
+      return (
+        <div className="d-flex justify-content-center align-items-center vh-100">
+          <Spinner animation="border" variant="primary" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="app-container">
+        <nav className="navbar navbar-dark bg-dark">
+          <div className="container-fluid">
+            <span className="navbar-brand mb-0 h1">Task Manager</span>
+            <Button variant="primary" onClick={this.toggleModal}>Add New Task</Button>
+          </div>
+        </nav>
+
+        <div className="container mt-4">
+          <div className="btn-group" role="group">
+            {["All", "High", "Medium", "Low", "Completed"].map((f) => (
+              <Button
+                key={f}
+                variant={filter === f ? "primary" : "outline-primary"}
+                onClick={() => this.handleFilterChange(f)}
+              >
+                {f}
+              </Button>
+            ))}
+          </div>
+
+          <div className="row mt-4">
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((task) => (
+                <div key={task.id} className="col-lg-6 mb-4">
+                  <Card className="task-card">
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-start">
+                        <Form.Check
+                          type="checkbox"
+                          checked={task.completed}
+                          onChange={() => this.handleTaskToggle(task.id)}
+                          label={
+                            <span className={task.completed ? "task-title-completed" : ""}>
+                              {task.title}
+                            </span>
+                          }
+                        />
+                        <Badge bg={this.getPriorityBadge(task.priority)}>
+                          {task.priority}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => this.handleDeleteTask(task.id)}
+                      >
+                        Delete
+                      </Button>
+                    </Card.Body>
+                  </Card>
+                </div>
+              ))
+            ) : (
+              <p className="text-center mt-4">No tasks to display for this filter.</p>
+            )}
+          </div>
+        </div>
+
+        {isModalOpen && (
+          <div className="modal-backdrop">
+            <div className="modal-container">
+              <Form onSubmit={this.handleAddTask}>
+                <Form.Group className="mb-3" controlId="formTaskTitle">
+                  <Form.Label>Task Title</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter task title..."
+                    value={newTaskTitle}
+                    onChange={(e) => this.setState({ newTaskTitle: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="formTaskPriority">
+                  <Form.Label>Priority</Form.Label>
+                  <Form.Select
+                    value={newTaskPriority}
+                    onChange={(e) => this.setState({ newTaskPriority: e.target.value })}
+                  >
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Button variant="secondary" onClick={this.toggleModal} className="me-2">Close</Button>
+                <Button variant="primary" type="submit">Add Task</Button>
+              </Form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+}
+
+export default App;
