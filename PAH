@@ -1,76 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
+
 function App() {
-  const [l, setL] = useState(true);
-  const [t, setT] = useState([
-    { id: 1, t: 'Complete React Assignment', p: 'High', c: false },
-    { id: 2, t: 'Review Bootstrap Documentation', p: 'Medium', c: true },
-    { id: 3, t: 'Debug Lifecycle Methods', p: 'High', c: false },
-    { id: 4, t: 'Setup React Dev Tools', p: 'Low', c: false }
-  ]);
-  const [f, setF] = useState('All');
-  const [nt, setNT] = useState('');
-  const [np, setNP] = useState('High');
-  const [sm, setSM] = useState(false);
+    const [l, setL] = useState(true);
+    const [t, setT] = useState([
+        {id:1, t:'Complete React Assignment', p:'High', c: false},
+        {id:2, t:'Review Bootstrap Documentation', p:'Medium', c: true},
+        {id:3, t:'Debug Lifecycle Methods', p:'High', c: false},
+        {id:4, t:'Setup React Dev Tools', p:'Low', c: false}
+    ]);
+    const [f, setF] = useState('All');
+    const [nt, setNT] = useState('');
+    const [np, setNP] = useState('High');
+    const [sm, setSM] = useState(false);
 
-  useEffect(() => {
-    const task = setTimeout(() => setL(false), 2000);
-    return () => clearTimeout(task);
-  }, []);
+    useEffect(() => {
+        const task = setTimeout(() => setL(false), 2000);
+        return () => clearTimeout(task);
+    }, []);
 
-  if (l) return <div className='spinner-border'></div>;
+    if(l) return <div className='spinner-border'></div>;
 
-  let fd = t;
-  if (f !== 'All') {
-    if (f === 'Completed') fd = t.filter(task => task.c);
-    else fd = t.filter(task => task.p === f);
-  }
+    let fd = t;
+    if(f!=='All') {
+        if(f==='Completed') fd = t.filter(task => task.c);
+        else fd = t.filter(task => task.p === f);
+    }
 
-  const addTask = () => {
-    if (!nt) return;
-    setT([...t, { id: Date.now(), t: nt, p: np, c: false }]);
-    setNT('');
-    setNP('High');
-    setSM(false);
-  };
+    const addTask = () => {
+        if(!nt) return;
+        setT([...t,{id: Date.now(), t: nt, p: np, c: false}]);
+        setNT('');
+        setNP('High');
+        setSM(false);
+    };
 
-  const deleteTask = id => setT(t.filter(task => task.id !== id));
-  const toggleComplete = id =>
-    setT(t.map(task => (task.id === id ? { ...task, c: !task.c } : task)));
+    const deleteTask = id => setT(t.filter(task => task.id !== id));
+    const toggleComplete = id => setT(t.map(task => (task.id === id ? {...task, c: !task.c} : t)));
+
+    return (
+        <div>
+            <h1>Task Manager</h1>
+            <nav className='navbar'>Navbar</nav>
+            <div>
+                {['All','High','Medium','Low','Completed'].map(fr => (
+                    <button key={fr} onClick={() => setF(fr)}>{fr}</button>
+                ))}
+            </div>
+            <button onClick={() => setSM(true)}>Add New Task</button>
+            {sm && (
+                <div>
+                    <input placeholder="Enter task title..." value={nt} onChange={ev => setNT(ev.target.value)}/>
+                    <label>Priority
+                        <select value={np} onChange={ev => setNP(ev.target.value)}>
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                        </select>
+                    </label>
+                    <button onClick={addTask}>Add Task</button>
+                </div>
+            )}
+            <ul>
+                {fd.map(task => (
+                    <li key={task.id}>
+                        <input type="checkbox" aria-label={task.t} checked={task.c} onChange={() => toggleComplete(task.id)}/>
+                        {task.t}
+                        <span className={`badge ${task.p==='High'?'bg-primary':task.p==='Medium'?'bg-warning':'bg-secondary'}`}>{task.p}</span>
+                        <button onClick={() => deleteTask(task.id)}>Delete</button>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
 }
-return (
-  <div>
-    <h1>Task Manager</h1>
-    <nav className="navbar">Navbar</nav>
-    <div>
-      {['All', 'High', 'Medium', 'Low', 'Completed'].map(fr => (
-        <button key={fr} onClick={() => setFr(fr)}>{fr}</button>
-      ))}
-    </div>
-    <button onClick={() => setSM(true)}>Add New Task</button>
-    {sm && (
-      <div>
-        <input placeholder="Enter task title..." value={nt} onChange={(ev) => setNT(ev.target.value)} />
-        <label>Priority
-          <select value={np} onChange={(ev) => setNP(ev.target.value)}>
-            <option>High</option>
-            <option>Medium</option>
-            <option>Low</option>
-          </select>
-        </label>
-        <button onClick={addTask}>Add Task</button>
-      </div>
-    )}
-    <ul>
-      {fd.map(task => (
-        <li key={task.id}>
-          <input type="checkbox" aria-label={task.t} checked={task.c} onChange={() => toggleComplete(task.id)} />
-          {task.t}
-          <span className={`badge ${task.p==='High'?'bg-primary':task.p==='Medium'?'bg-warning':'bg-secondary'}`}>{task.p}</span>
-          <button onClick={() => deleteTask(task.id)}>Delete</button>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-
 export default App;
