@@ -1,242 +1,76 @@
-import React from "react";
-import { Button, Form, Badge, Card, Spinner, Modal } from "react-bootstrap";
-import "./App.css";
+import React, { useState, useEffect } from 'react';
+function App() {
+  const [l, setL] = useState(true);
+  const [t, setT] = useState([
+    { id: 1, t: 'Complete React Assignment', p: 'High', c: false },
+    { id: 2, t: 'Review Bootstrap Documentation', p: 'Medium', c: true },
+    { id: 3, t: 'Debug Lifecycle Methods', p: 'High', c: false },
+    { id: 4, t: 'Setup React Dev Tools', p: 'Low', c: false }
+  ]);
+  const [f, setF] = useState('All');
+  const [nt, setNT] = useState('');
+  const [np, setNP] = useState('High');
+  const [sm, setSM] = useState(false);
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    console.log("constructor: Component is being constructed");
+  useEffect(() => {
+    const task = setTimeout(() => setL(false), 2000);
+    return () => clearTimeout(task);
+  }, []);
 
-    this.state = {
-      tasks: [
-        { id: 1, title: "Complete React Assignment", priority: "High", completed: false, createdAt: Date.now() },
-        { id: 2, title: "Review Bootstrap Documentation", priority: "Medium", completed: true, createdAt: Date.now() },
-        { id: 3, title: "Debug Lifecycle Methods", priority: "High", completed: false, createdAt: Date.now() },
-        { id: 4, title: "Setup React Dev Tools", priority: "Low", completed: false, createdAt: Date.now() },
-      ],
-      filter: "All",
-      isLoading: true,
-      mountTime: null,
-      newTaskTitle: "",
-      newTaskPriority: "High",
-      isModalOpen: false,
-    };
+  if (l) return <div className='spinner-border'></div>;
 
-    this.handleFilterChange = this.handleFilterChange.bind(this);
-    this.handleTaskToggle = this.handleTaskToggle.bind(this);
-    this.handleDeleteTask = this.handleDeleteTask.bind(this);
-    this.handleAddTask = this.handleAddTask.bind(this);
-    this.toggleModal = this.toggleModal.bind(this);
+  let fd = t;
+  if (f !== 'All') {
+    if (f === 'Completed') fd = t.filter(task => task.c);
+    else fd = t.filter(task => task.p === f);
   }
 
-  componentDidMount() {
-    console.log("componentDidMount: Component has mounted");
-    this.setState({ mountTime: new Date().toLocaleString() });
+  const addTask = () => {
+    if (!nt) return;
+    setT([...t, { id: Date.now(), t: nt, p: np, c: false }]);
+    setNT('');
+    setNP('High');
+    setSM(false);
+  };
 
-    this.timer = setTimeout(() => {
-      this.setState({ isLoading: false });
-      console.log("Simulated API call complete — loading finished");
-    }, 1000);
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.tasks.length !== this.state.tasks.length) {
-      console.log(`Tasks changed: ${prevState.tasks.length} → ${this.state.tasks.length}`);
-    }
-
-    if (prevState.filter !== this.state.filter) {
-      console.log(`Filter changed: ${prevState.filter} → ${this.state.filter}`);
-    }
-  }
-
-  componentWillUnmount() {
-    console.log("componentWillUnmount: Cleaning up resources...");
-    if (this.timer) clearTimeout(this.timer);
-  }
-
-  handleFilterChange(filterType) {
-    this.setState({ filter: filterType });
-  }
-
-  handleTaskToggle(taskId) {
-    this.setState((prevState) => ({
-      tasks: prevState.tasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      ),
-    }));
-  }
-
-  handleDeleteTask(taskId) {
-    this.setState((prevState) => ({
-      tasks: prevState.tasks.filter((task) => task.id !== taskId),
-    }));
-  }
-
-  handleAddTask(e) {
-    e.preventDefault();
-    const { newTaskTitle, newTaskPriority } = this.state;
-    if (!newTaskTitle.trim()) return;
-
-    const newTask = {
-      id: Date.now(),
-      title: newTaskTitle.trim(),
-      priority: newTaskPriority,
-      completed: false,
-      createdAt: Date.now(),
-    };
-
-    this.setState((prevState) => ({
-      tasks: [...prevState.tasks, newTask],
-      newTaskTitle: "",
-      newTaskPriority: "High",
-      isModalOpen: false,
-    }));
-  }
-
-  toggleModal() {
-    this.setState((prevState) => ({
-      isModalOpen: !prevState.isModalOpen,
-    }));
-  }
-
-  getPriorityBadge(priority) {
-    switch (priority) {
-      case "High":
-        return "danger";
-      case "Medium":
-        return "warning";
-      case "Low":
-        return "success";
-      default:
-        return "info";
-    }
-  }
-
-  render() {
-    const { tasks, filter, isLoading, isModalOpen, newTaskTitle, newTaskPriority } = this.state;
-
-    if (isLoading) {
-      return (
-        <div data-testid="loading" className="d-flex justify-content-center align-items-center vh-100">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      );
-    }
-
-    const filteredTasks = tasks.filter((task) => {
-      if (filter === "Completed") return task.completed;
-      if (filter === "All") return true;
-      return task.priority === filter;
-    });
-
-    return (
-      <div className="app-container">
-        <nav className="navbar navbar-dark bg-dark">
-          <div className="container-fluid">
-            <span className="navbar-brand mb-0 h1">Task Manager</span>
-            <Button variant="primary" onClick={this.toggleModal}>
-              Add New Task
-            </Button>
-          </div>
-        </nav>
-
-        <div className="container mt-4">
-          <div className="btn-group mb-3" role="group" aria-label="Filter Tasks">
-            {["All", "High", "Medium", "Low", "Completed"].map((f) => (
-              <Button
-                key={f}
-                variant={filter === f ? "primary" : "outline-primary"}
-                onClick={() => this.handleFilterChange(f)}
-              >
-                {f}
-              </Button>
-            ))}
-          </div>
-
-          <div className="row">
-            {filteredTasks.length > 0 ? (
-              filteredTasks.map((task) => (
-                <div key={task.id} className="col-md-6 mb-3">
-                  <Card className="shadow-sm">
-                    <Card.Body>
-                      <div className="d-flex justify-content-between align-items-start">
-                        <Form.Check
-                          type="checkbox"
-                          checked={task.completed}
-                          onChange={() => this.handleTaskToggle(task.id)}
-                          label={
-                            <span className={task.completed ? "text-decoration-line-through" : ""}>
-                              {task.title}
-                            </span>
-                          }
-                        />
-                        <Badge variant={this.getPriorityBadge(task.priority)}>
-                          {task.priority}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        className="mt-3"
-                        onClick={() => this.handleDeleteTask(task.id)}
-                      >
-                        Delete
-                      </Button>
-                    </Card.Body>
-                  </Card>
-                </div>
-              ))
-            ) : (
-              <p className="text-center">No tasks to display for this filter.</p>
-            )}
-          </div>
-        </div>
-
-        <Modal show={isModalOpen} onHide={this.toggleModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Add New Task</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form onSubmit={this.handleAddTask}>
-              <Form.Group className="mb-3">
-                <Form.Label>Task Title</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter task title..."
-                  value={newTaskTitle}
-                  onChange={(e) => this.setState({ newTaskTitle: e.target.value })}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Priority</Form.Label>
-                <Form.Select
-                  value={newTaskPriority}
-                  onChange={(e) => this.setState({ newTaskPriority: e.target.value })}
-                >
-                  <option>High</option>
-                  <option>Medium</option>
-                  <option>Low</option>
-                </Form.Select>
-              </Form.Group>
-
-              <div className="text-end">
-                <Button variant="secondary" onClick={this.toggleModal} className="me-2">
-                  Cancel
-                </Button>
-                <Button variant="primary" type="submit">
-                  Add Task
-                </Button>
-              </div>
-            </Form>
-          </Modal.Body>
-        </Modal>
-      </div>
-    );
-  }
+  const deleteTask = id => setT(t.filter(task => task.id !== id));
+  const toggleComplete = id =>
+    setT(t.map(task => (task.id === id ? { ...task, c: !task.c } : task)));
 }
+return (
+  <div>
+    <h1>Task Manager</h1>
+    <nav className="navbar">Navbar</nav>
+    <div>
+      {['All', 'High', 'Medium', 'Low', 'Completed'].map(fr => (
+        <button key={fr} onClick={() => setFr(fr)}>{fr}</button>
+      ))}
+    </div>
+    <button onClick={() => setSM(true)}>Add New Task</button>
+    {sm && (
+      <div>
+        <input placeholder="Enter task title..." value={nt} onChange={(ev) => setNT(ev.target.value)} />
+        <label>Priority
+          <select value={np} onChange={(ev) => setNP(ev.target.value)}>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+        </label>
+        <button onClick={addTask}>Add Task</button>
+      </div>
+    )}
+    <ul>
+      {fd.map(task => (
+        <li key={task.id}>
+          <input type="checkbox" aria-label={task.t} checked={task.c} onChange={() => toggleComplete(task.id)} />
+          {task.t}
+          <span className={`badge ${task.p==='High'?'bg-primary':task.p==='Medium'?'bg-warning':'bg-secondary'}`}>{task.p}</span>
+          <button onClick={() => deleteTask(task.id)}>Delete</button>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
 
 export default App;
